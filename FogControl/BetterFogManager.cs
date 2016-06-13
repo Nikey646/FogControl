@@ -50,6 +50,7 @@ namespace FogControl
 					}
 				}
 
+
 				this._settings = new Ini(location);
 				if (!this._settings.ContainsSection("FogControl"))
 					this._settings.AddSection("FogControl");
@@ -59,6 +60,15 @@ namespace FogControl
 					this._settings.SetFloat("FogLevel", 50);
 				this.customFogDensity = this._settings.GetFloat("FogLevel", 50);
 
+				if (this._settings.ContainsSection("ClearView"))
+				{
+					this._settings.SetSection("ClearView");
+					CamDetail.mbEnableBloom = this._settings.GetBoolean("DisableBloom", false);
+					CamDetail.mbDisableSunAndShafts = this._settings.GetBoolean("DisableSunShafts", false);
+
+					CamDetail.instance.ControlledCam.GetComponent<BloomAndLensFlares>().enabled = CamDetail.mbEnableBloom;
+				}
+
 				this._settings.WriteToDisk();
 			}
 			catch (Exception ex)
@@ -66,8 +76,8 @@ namespace FogControl
 				Debug.LogError(ex);
 			}
 
-			Console.AddCommand(new ConsoleCommand("foglevel", "Set the Density of the Fog. Usage: foglevel 50", CmdParameterType.Float, this.gameObject, "FogLevel"));
-			Console.AddCommand(new ConsoleCommand("resetfog", "Resets the fog density to the default level. Usage: resetfog",
+			global::Console.AddCommand(new ConsoleCommand("foglevel", "Set the Density of the Fog. Usage: foglevel 50", CmdParameterType.Float, this.gameObject, "FogLevel"));
+			global::Console.AddCommand(new ConsoleCommand("resetfog", "Resets the fog density to the default level. Usage: resetfog",
 				CmdParameterType.None, this.gameObject, "FogReset"));
 
 		}
@@ -78,6 +88,7 @@ namespace FogControl
 			this._settings.SetSection("FogControl");
 			this._settings.SetFloat("FogLevel", density);
 			this._settings.WriteToDisk();
+			global::Console.LogTargetFunction($"Fog density updated to \"{density}\".", ConsoleMessageType.Log);
 		}
 
 		private void FogReset()
@@ -86,6 +97,7 @@ namespace FogControl
 			this._settings.SetSection("FogControl");
 			this._settings.SetFloat("FogLevel", 50);
 			this._settings.WriteToDisk();
+			global::Console.LogTargetFunction($"Fog density reset to \"50\".", ConsoleMessageType.Log);
 		}
 
 		private void Update()
